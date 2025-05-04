@@ -1,0 +1,25 @@
+.App {
+  text-align: center;
+  min-height: 100vh;
+  background-color: #121212;
+  color: white;
+}
+
+.logo-spin {
+  animation: logo-spin infinite 20s linear;
+}
+
+@keyframes logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Add a subtle lightning effect to the header on hover */
+.MuiAppBar-root:hover {
+  box-shadow: 0 0 15px rgba(255, 165, 0, 0.3);
+  transition: box-shadow 0.3s ease-in-out;
+} 

@@ -1,0 +1,1 @@
+export type SportType = 'soccer' | 'basketball' | 'baseball' | 'football' | 'hockey'; 
