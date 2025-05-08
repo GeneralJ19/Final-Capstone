@@ -1,4 +1,4 @@
-from pydantic import BaseSettings
+from pydantic_settings import BaseSettings
 from typing import Optional, List
 import os
 from dotenv import load_dotenv
@@ -7,11 +7,13 @@ from dotenv import load_dotenv
 load_dotenv()
 
 class Settings(BaseSettings):
-    # OpenAI Settings
-    OPENAI_API_KEY: Optional[str] = os.getenv("OPENAI_API_KEY")
-    OPENAI_MODEL: str = "gpt-4-0125-preview"
-    OPENAI_TEMPERATURE: float = 0.7
-    OPENAI_MAX_TOKENS: int = 2000
+    # Azure OpenAI Settings
+    AZURE_OPENAI_KEY: Optional[str] = os.getenv("AZURE_OPENAI_KEY")
+    AZURE_OPENAI_ENDPOINT: str = os.getenv("AZURE_OPENAI_ENDPOINT", "https://ai-w2159934766238ai224090976649.openai.azure.com/")
+    AZURE_OPENAI_VERSION: str = os.getenv("AZURE_OPENAI_VERSION", "2024-02-15-preview")
+    OPENAI_MODEL: str = os.getenv("OPENAI_MODEL", "gpt-4")
+    OPENAI_TEMPERATURE: float = float(os.getenv("OPENAI_TEMPERATURE", "0.7"))
+    OPENAI_MAX_TOKENS: int = int(os.getenv("OPENAI_MAX_TOKENS", "2000"))
     
     # Database
     DATABASE_URL: str = os.getenv("DATABASE_URL", "postgresql://postgres:Admin@localhost:5432/prophetplay")

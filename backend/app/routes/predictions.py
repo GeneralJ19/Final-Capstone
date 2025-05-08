@@ -1,15 +1,21 @@
 from flask import Blueprint, jsonify, request
 import random
-from openai import OpenAI
+from openai import AzureOpenAI
+from azure.core.credentials import AzureKeyCredential
 import os
 from datetime import datetime
 from flask_cors import CORS
+from ..core.config import settings
 
 predictions = Blueprint('predictions', __name__)
 CORS(predictions)  # Enable CORS for all routes in this blueprint
 
-# Initialize OpenAI client
-client = OpenAI()  # It will automatically use OPENAI_API_KEY from environment
+# Initialize Azure OpenAI client
+client = AzureOpenAI(
+    api_version="2024-12-01-preview",
+    azure_endpoint="https://ai-w2159934766238ai224090976649.openai.azure.com/",
+    api_key=settings.AZURE_OPENAI_KEY
+)
 
 @predictions.route('/predict/match', methods=['POST'])
 def predict_match():
@@ -45,45 +51,33 @@ def predict_match():
 @predictions.route('/predict/player', methods=['POST', 'OPTIONS'])
 def predict_player():
     if request.method == 'OPTIONS':
-        # Handle preflight request
-        response = jsonify({'status': 'ok'})
-        response.headers.add('Access-Control-Allow-Origin', '*')
-        response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
-        response.headers.add('Access-Control-Allow-Methods', 'POST')
-        return response
+        return '', 200
 
     try:
         data = request.get_json()
         player_name = data.get('player_name')
         team = data.get('team')
         category = data.get('category')
-        prediction_type = data.get('type')  # 'over' or 'under'
-        target_value = data.get('value')
-        
+        prediction_type = data.get('prediction_type')
+        target_value = data.get('target_value')
+
         if not all([player_name, team, category, prediction_type, target_value]):
             return jsonify({'error': 'Missing required fields'}), 400
 
-        # Create a detailed prompt for OpenAI
+        # Construct the prompt for player prediction
         prompt = f"""
-        Analyze the likelihood of {player_name} from {team} going {prediction_type} {target_value} {category} in their next match.
+        Analyze the following player prediction request:
+        Player: {player_name}
+        Team: {team}
+        Category: {category}
+        Prediction Type: {prediction_type}
+        Target Value: {target_value}
 
-        Please provide a detailed analysis considering:
-        1. Player's recent form and performance trends
-        2. Historical performance in similar situations
-        3. Team's playing style and tactics
-        4. Opposition's defensive/offensive strengths
-        5. Any relevant injuries or team news
-        6. Statistical trends and patterns
-
-        Format the response to include:
-        - Prediction (Over/Under)
-        - Confidence level (percentage)
-        - Detailed reasoning
-        - Key factors supporting the prediction
-        - Potential risks or variables to consider
+        Please provide a detailed analysis of the player's likelihood to achieve this target,
+        considering their recent form, historical performance, and relevant statistics.
         """
 
-        # Get prediction analysis from OpenAI using new API syntax
+        # Get prediction analysis from OpenAI using Azure OpenAI
         response = client.chat.completions.create(
             model="gpt-4",
             messages=[
@@ -94,7 +88,7 @@ def predict_player():
             max_tokens=800
         )
 
-        # Extract the analysis using new API syntax
+        # Extract the analysis
         analysis = response.choices[0].message.content
 
         # Generate a confidence score (this would be replaced with actual ML model in production)
